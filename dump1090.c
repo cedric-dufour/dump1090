@@ -233,6 +233,12 @@ struct modesMessage {
     int altitude, unit;
 };
 
+/* The type used to store the DateTime in SBS Format. */
+typedef struct {
+    char date[11]; //"1979/09/23\0"
+    char time[13]; //"12:20:17.333\0"
+} sbsDateTimeFormat;
+
 void interactiveShowData(void);
 struct aircraft* interactiveReceiveData(struct modesMessage *mm);
 void modesSendRawOutput(struct modesMessage *mm);
@@ -254,6 +260,18 @@ static long long mstime(void) {
     mst = ((long long)tv.tv_sec)*1000;
     mst += tv.tv_usec/1000;
     return mst;
+}
+
+static void getSBSUtcTime(sbsDateTimeFormat *dateTime){
+
+    time_t rawTime=time(0);
+    struct tm * now=gmtime(&rawTime);
+
+    memset(dateTime->date, '\0', sizeof(dateTime->date)-1);
+    memset(dateTime->time, '\0', sizeof(dateTime->time)-1);
+
+    strftime(dateTime->date,20,"%Y/%m/%H",now);
+    strftime(dateTime->time,20,"%T.000",now);
 }
 
 /* =============================== Initialization =========================== */
@@ -2032,6 +2050,9 @@ void modesSendSBSOutput(struct modesMessage *mm, struct aircraft *a) {
     char msg[256], *p = msg;
     int emergency = 0, ground = 0, alert = 0, spi = 0;
 
+    sbsDateTimeFormat dateTime;
+    getSBSUtcTime(&dateTime);
+
     if (mm->msgtype == 4 || mm->msgtype == 5 || mm->msgtype == 21) {
         /* Node: identity is calculated/kept in base10 but is actually
          * octal (07500 is represented as 7500) */
@@ -2043,36 +2064,46 @@ void modesSendSBSOutput(struct modesMessage *mm, struct aircraft *a) {
     }
 
     if (mm->msgtype == 0) {
-        p += sprintf(p, "MSG,5,,,%02X%02X%02X,,,,,,,%d,,,,,,,,,,",
-        mm->aa1, mm->aa2, mm->aa3, mm->altitude);
+
+        p += sprintf(p, "MSG,5,,,%02X%02X%02X,,,,%s,%s,,%d,,,,,,,,,,",
+        mm->aa1, mm->aa2, mm->aa3, dateTime.date, dateTime.time, mm->altitude);
+
     } else if (mm->msgtype == 4) {
-        p += sprintf(p, "MSG,5,,,%02X%02X%02X,,,,,,,%d,,,,,,,%d,%d,%d,%d",
-        mm->aa1, mm->aa2, mm->aa3, mm->altitude, alert, emergency, spi, ground);
+        p += sprintf(p, "MSG,5,,,%02X%02X%02X,,,,%s,%s,,%d,,,,,,,%d,%d,%d,%d",
+        mm->aa1, mm->aa2, mm->aa3, dateTime.date, dateTime.time, mm->altitude,
+        alert, emergency, spi, ground);
     } else if (mm->msgtype == 5) {
-        p += sprintf(p, "MSG,6,,,%02X%02X%02X,,,,,,,,,,,,,%d,%d,%d,%d,%d",
-        mm->aa1, mm->aa2, mm->aa3, mm->identity, alert, emergency, spi, ground);
+        p += sprintf(p, "MSG,6,,,%02X%02X%02X,,,,%s,%s,,,,,,,,%d,%d,%d,%d,%d",
+        mm->aa1, mm->aa2, mm->aa3, dateTime.date, dateTime.time, mm->identity,
+        alert, emergency, spi, ground);
     } else if (mm->msgtype == 11) {
-        p += sprintf(p, "MSG,8,,,%02X%02X%02X,,,,,,,,,,,,,,,,,",
-        mm->aa1, mm->aa2, mm->aa3);
+        p += sprintf(p, "MSG,8,,,%02X%02X%02X,,,,%s,%s,,,,,,,,,,,,",
+        mm->aa1, mm->aa2, mm->aa3,dateTime.date, dateTime.time);
     } else if (mm->msgtype == 17 && mm->metype == 4) {
-        p += sprintf(p, "MSG,1,,,%02X%02X%02X,,,,,,%s,,,,,,,,0,0,0,0",
-        mm->aa1, mm->aa2, mm->aa3, mm->flight);
+        p += sprintf(p, "MSG,1,,,%02X%02X%02X,,,,%s,%s,%s,,,,,,,,0,0,0,0",
+        mm->aa1, mm->aa2, mm->aa3, dateTime.date, dateTime.time, mm->flight);
     } else if (mm->msgtype == 17 && mm->metype >= 9 && mm->metype <= 18) {
         if (a->lat == 0 && a->lon == 0)
-            p += sprintf(p, "MSG,3,,,%02X%02X%02X,,,,,,,%d,,,,,,,0,0,0,0",
-            mm->aa1, mm->aa2, mm->aa3, mm->altitude);
-        else
-            p += sprintf(p, "MSG,3,,,%02X%02X%02X,,,,,,,%d,,,%1.5f,%1.5f,,,"
+            p += sprintf(p, "MSG,3,,,%02X%02X%02X,,,,%s,%s,,%d,,,,,,,"
                             "0,0,0,0",
-            mm->aa1, mm->aa2, mm->aa3, mm->altitude, a->lat, a->lon);
+            mm->aa1, mm->aa2, mm->aa3, dateTime.date, dateTime.time,
+            mm->altitude);
+        else
+            p += sprintf(p, "MSG,3,,,%02X%02X%02X,,,,%s,%s,,%d,,,%1.5f,%1.5f,,,"
+                            "0,0,0,0",
+            mm->aa1, mm->aa2, mm->aa3, dateTime.date, dateTime.time,
+            mm->altitude, a->lat, a->lon);
     } else if (mm->msgtype == 17 && mm->metype == 19 && mm->mesub == 1) {
         int vr = (mm->vert_rate_sign==0?1:-1) * (mm->vert_rate-1) * 64;
 
-        p += sprintf(p, "MSG,4,,,%02X%02X%02X,,,,,,,,%d,%d,,,%i,,0,0,0,0",
-        mm->aa1, mm->aa2, mm->aa3, a->speed, a->track, vr);
+        p += sprintf(p, "MSG,4,,,%02X%02X%02X,,,,%s,%s,,,%d,%d,,,%i,,0,0,0,0",
+        mm->aa1, mm->aa2, mm->aa3,dateTime.date, dateTime.time, a->speed,
+        a->track, vr);
+
     } else if (mm->msgtype == 21) {
-        p += sprintf(p, "MSG,6,,,%02X%02X%02X,,,,,,,,,,,,,%d,%d,%d,%d,%d",
-        mm->aa1, mm->aa2, mm->aa3, mm->identity, alert, emergency, spi, ground);
+        p += sprintf(p, "MSG,6,,,%02X%02X%02X,,,,%s,%s,,,,,,,,%d,%d,%d,%d,%d",
+        mm->aa1, mm->aa2, mm->aa3,dateTime.date, dateTime.time, mm->identity,
+        alert, emergency, spi, ground);
     } else {
         return;
     }
