@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+
+VERSION = "git"
+
+build/dump1090::
+	# Build
+	make
+
+install/dump1090::
+	# Copy binary
+	mkdir -p debian/tmp/usr/bin
+	cp dump1090 debian/tmp/usr/bin/dump1090
+	# Create man pages
+	mkdir -p debian/tmp/usr/share/man/man1
+	help2man --name 'a ADS-B/ModeS+ES decoder specifically designed for RTL-SDR devices' \
+		--help-option --help --version-string $(VERSION) --no-info \
+		debian/tmp/usr/bin/dump1090 > debian/tmp/usr/share/man/man1/dump1090.1
+
+clean::
+	make clean
+	rm -rf debian/tmp
+

@@ -1,0 +1,6 @@
+dump1090 (0~git20131215) UNRELEASED; urgency=low
+
+  * INITIAL DEBIAN PACKAGING
+
+ -- Cedric Dufour <cedric.dufour@ced-network.net>  Thu, 02 Jan 2014 16:23:55 +0100
+

@@ -1,0 +1,18 @@
+Source: dump1090
+Section: misc
+Priority: optional
+Maintainer: Cedric Dufour <cedric.dufour@ced-network.net>
+Build-Depends: cdbs, cmake (>= 2.8), debhelper (>= 5), pkg-config, help2man, librtlsdr-dev, libusb-1.0-0-dev
+Standards-Version: 3.8.4
+Homepage: https://github.com/antirez/dump1090
+
+Package: dump1090
+Section: utils
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: ADS-B/ModeS+ES decoding utility for RTL-SDR devices
+ Salvatore Sanfilippo's Dump1090 utility is a ADS-B/ModeS+ES (Extended Squitter)
+ decoder specifically designed for RTL-SDR devices.
+ It also provides client/server functionality, allowing to forward raw messages
+ (port 30002) or SBS-1-encoded messages (port 30003) via TCP/IP.
+
