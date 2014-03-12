@@ -262,16 +262,14 @@ static long long mstime(void) {
     return mst;
 }
 
-static void getSBSUtcTime(sbsDateTimeFormat *dateTime){
+static void getSBSUtcTime(sbsDateTimeFormat *dateTime) {
+    struct timeval tvNow;
+    struct tm tmNow;
+    gettimeofday(&tvNow, NULL) ;
+    gmtime_r(&(tvNow.tv_sec), &tmNow);
 
-    time_t rawTime=time(0);
-    struct tm * now=gmtime(&rawTime);
-
-    memset(dateTime->date, '\0', sizeof(dateTime->date)-1);
-    memset(dateTime->time, '\0', sizeof(dateTime->time)-1);
-
-    strftime(dateTime->date,20,"%Y/%m/%H",now);
-    strftime(dateTime->time,20,"%T.000",now);
+    sprintf(dateTime->date, "%04d/%02d/%02d", tmNow.tm_year+1900, tmNow.tm_mon+1, tmNow.tm_mday);
+    sprintf(dateTime->time, "%02d:%02d:%02d.%03d", tmNow.tm_hour, tmNow.tm_min, tmNow.tm_sec, (int)(tvNow.tv_usec/1000) );
 }
 
 /* =============================== Initialization =========================== */
