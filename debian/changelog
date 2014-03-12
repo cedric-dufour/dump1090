@@ -1,3 +1,12 @@
+dump1090 (0~git20140312~cd1) UNRELEASED; urgency=low
+
+  * Merged (and corrected) various pull requests from upstream:
+  - Changed algorithm to speed up fixSingleBitErrors() and fixTwoBitsErrors()
+  - Add UTC date and time to SBS message (field 9 and field 10 of type MSG)
+  - Added --quiet and --ppm options
+
+ -- Cedric Dufour <cedric.dufour@ced-network.net>  Wed, 12 Mar 2014 10:44:10 +0100
+
 dump1090 (0~git20131215) UNRELEASED; urgency=low
 
   * INITIAL DEBIAN PACKAGING
