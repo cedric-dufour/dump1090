@@ -2,7 +2,7 @@ Source: dump1090
 Section: misc
 Priority: optional
 Maintainer: Cedric Dufour <cedric.dufour@ced-network.net>
-Build-Depends: cdbs, cmake (>= 2.8), debhelper (>= 5), pkg-config, help2man, librtlsdr-dev, libusb-1.0-0-dev
+Build-Depends: build-essential, cdbs, debhelper (>= 5), help2man, pkg-config, librtlsdr-dev, libusb-1.0-0-dev
 Standards-Version: 3.8.4
 Homepage: https://github.com/antirez/dump1090
 
