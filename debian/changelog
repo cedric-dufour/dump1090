@@ -1,3 +1,9 @@
+dump1090 (0~git20161206~cd1) UNRELEASED; urgency=low
+
+  * Merged upstream/master changes
+
+ -- Cédric Dufour <cedric.dufour@ced-network.net>  Tue, 06 Dec 2016 15:44:03 +0100
+
 dump1090 (0~git20140312~cd1) UNRELEASED; urgency=low
 
   * Merged (and corrected) various pull requests from upstream:
